@@ -365,63 +365,67 @@ export default function AdminsManagement() {
           </Dialog>
         </div>
 
-        <div className="rounded-lg border bg-card">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Division</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {admins.length === 0 ? (
+        <div className="rounded-lg border bg-card overflow-hidden">
+          <div className="overflow-x-auto">
+            <Table className="min-w-[800px]">
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                    No admins found. Create your first admin to get started.
-                  </TableCell>
+                  <TableHead className="w-[150px]">Name</TableHead>
+                  <TableHead className="w-[130px]">Phone</TableHead>
+                  <TableHead className="w-[180px]">Email</TableHead>
+                  <TableHead className="w-[120px]">Division</TableHead>
+                  <TableHead className="w-[80px]">Status</TableHead>
+                  <TableHead className="w-[100px]">Created</TableHead>
+                  <TableHead className="w-[100px] text-right">Actions</TableHead>
                 </TableRow>
-              ) : (
-                admins.map((admin) => (
-                  <TableRow key={admin.id}>
-                    <TableCell className="font-medium">
-                      {admin.profile?.full_name || "N/A"}
-                    </TableCell>
-                    <TableCell>{admin.phone || "N/A"}</TableCell>
-                    <TableCell>{admin.profile?.email || "N/A"}</TableCell>
-                    <TableCell>{admin.division?.name || "N/A"}</TableCell>
-                    <TableCell>
-                      <span
-                        className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                          admin.is_active
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
-                        }`}
-                      >
-                        {admin.is_active ? "Active" : "Inactive"}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      {new Date(admin.created_at).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => toggleAdminStatus(admin.id, admin.is_active ?? true)}
-                      >
-                        {admin.is_active ? "Deactivate" : "Activate"}
-                      </Button>
+              </TableHeader>
+              <TableBody>
+                {admins.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      No admins found. Create your first admin to get started.
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  admins.map((admin) => (
+                    <TableRow key={admin.id}>
+                      <TableCell className="font-medium whitespace-nowrap">
+                        {admin.profile?.full_name || "N/A"}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">{admin.phone || "N/A"}</TableCell>
+                      <TableCell className="truncate max-w-[180px]" title={admin.profile?.email || "N/A"}>
+                        {admin.profile?.email || "N/A"}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">{admin.division?.name || "N/A"}</TableCell>
+                      <TableCell>
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-medium rounded-full whitespace-nowrap ${
+                            admin.is_active
+                              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                              : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                          }`}
+                        >
+                          {admin.is_active ? "Active" : "Inactive"}
+                        </span>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {new Date(admin.created_at).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => toggleAdminStatus(admin.id, admin.is_active ?? true)}
+                        >
+                          {admin.is_active ? "Deactivate" : "Activate"}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </div>
     </Layout>
