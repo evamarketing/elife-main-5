@@ -89,23 +89,32 @@ export function DivisionsSection() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {divisions.map((division) => (
-            <Card 
+            <Link 
               key={division.id}
-              className="group hover:shadow-lg transition-all duration-300 border-border/50 hover:border-primary/30 overflow-hidden"
+              to={`/programs?division=${division.id}`}
+              className="block"
             >
-              <CardContent className="p-6">
-                <div className={`inline-flex h-12 w-12 items-center justify-center rounded-xl ${division.color} text-white mb-4 group-hover:scale-110 transition-transform`}>
-                  <division.icon className="h-6 w-6" />
-                </div>
-                <h3 className="font-display font-semibold text-lg text-foreground mb-1">
-                  {division.name}
-                </h3>
-                <p className="text-xs text-muted-foreground mb-2">{division.nameMl}</p>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {division.description}
-                </p>
-              </CardContent>
-            </Card>
+              <Card 
+                className="group h-full hover:shadow-xl transition-all duration-300 border-border/50 hover:border-primary/50 overflow-hidden cursor-pointer hover:-translate-y-1"
+              >
+                <CardContent className="p-6">
+                  <div className={`inline-flex h-14 w-14 items-center justify-center rounded-2xl ${division.color} text-white mb-4 group-hover:scale-110 transition-transform shadow-lg`}>
+                    <division.icon className="h-7 w-7" />
+                  </div>
+                  <h3 className="font-display font-semibold text-lg text-foreground mb-1 group-hover:text-primary transition-colors">
+                    {division.name}
+                  </h3>
+                  <p className="text-xs text-muted-foreground mb-3">{division.nameMl}</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                    {division.description}
+                  </p>
+                  <div className="flex items-center gap-1 text-sm font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span>View Programs</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
 
