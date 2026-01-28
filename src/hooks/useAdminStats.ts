@@ -16,6 +16,13 @@ interface ClusterStats {
   panchayath_name: string;
 }
 
+interface RecentRegistration {
+  id: string;
+  program_name: string;
+  registrant_name: string;
+  created_at: string;
+}
+
 interface AdminStats {
   totalPrograms: number;
   totalRegistrations: number;
@@ -23,6 +30,7 @@ interface AdminStats {
   totalMembers: number;
   panchayathStats: PanchayathStats[];
   clusterStats: ClusterStats[];
+  recentRegistrations: RecentRegistration[];
   isLoading: boolean;
   error: string | null;
 }
@@ -36,6 +44,7 @@ export function useAdminStats(): AdminStats {
     totalMembers: 0,
     panchayathStats: [],
     clusterStats: [],
+    recentRegistrations: [],
     isLoading: true,
     error: null,
   });
@@ -163,6 +172,28 @@ export function useAdminStats(): AdminStats {
           }
         }
 
+        // Fetch recent registrations for the admin's programs
+        const recentRegistrations: RecentRegistration[] = [];
+        if (programIds.length > 0) {
+          const { data: recentRegs } = await supabase
+            .from("program_registrations")
+            .select("id, created_at, answers, program:programs(name)")
+            .in("program_id", programIds)
+            .order("created_at", { ascending: false })
+            .limit(10);
+          
+          for (const reg of recentRegs || []) {
+            const answers = reg.answers as Record<string, any> || {};
+            const registrantName = answers.full_name || answers.name || "Unknown";
+            recentRegistrations.push({
+              id: reg.id,
+              program_name: (reg.program as any)?.name || "Unknown Program",
+              registrant_name: registrantName,
+              created_at: reg.created_at,
+            });
+          }
+        }
+
         setStats({
           totalPrograms: programs?.length || 0,
           totalRegistrations: registrationsCount,
@@ -170,6 +201,7 @@ export function useAdminStats(): AdminStats {
           totalMembers: membersCount || 0,
           panchayathStats: panchayathStats.sort((a, b) => b.registrations - a.registrations),
           clusterStats: clusterStats.sort((a, b) => b.members - a.members),
+          recentRegistrations,
           isLoading: false,
           error: null,
         });

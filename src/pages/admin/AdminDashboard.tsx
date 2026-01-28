@@ -24,10 +24,12 @@ import {
   LogOut,
   Shield,
   Loader2,
-  Building2
+  Building2,
+  Clock
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { formatDistanceToNow } from "date-fns";
 
 interface DivisionInfo {
   id: string;
@@ -172,7 +174,51 @@ export default function AdminDashboard() {
           </Button>
         </div>
 
-        <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
+        <div className="grid gap-4 sm:gap-6 lg:grid-cols-2 mb-6 sm:mb-8">
+          {/* Recent Registrations */}
+          <Card>
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-3 sm:pb-6">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <ClipboardList className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                  Recent Registrations
+                </CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
+                  Latest program registrations
+                </CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="px-3 sm:px-6">
+              {stats.recentRegistrations.length === 0 ? (
+                <p className="text-muted-foreground text-sm py-4 text-center">
+                  No registrations yet
+                </p>
+              ) : (
+                <div className="space-y-3 max-h-[300px] overflow-y-auto">
+                  {stats.recentRegistrations.map((reg) => (
+                    <div key={reg.id} className="flex items-start gap-3 p-2.5 sm:p-3 rounded-lg border">
+                      <div className="p-1.5 sm:p-2 rounded-full bg-green-100 dark:bg-green-900/30 flex-shrink-0">
+                        <ClipboardList className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600 dark:text-green-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-xs sm:text-sm truncate">
+                          {reg.registrant_name}
+                        </p>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
+                          {reg.program_name}
+                        </p>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                          <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                          {formatDistanceToNow(new Date(reg.created_at), { addSuffix: true })}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Panchayath-wise Stats */}
           <Card>
             <CardHeader className="pb-3 sm:pb-6">
@@ -213,53 +259,53 @@ export default function AdminDashboard() {
               )}
             </CardContent>
           </Card>
-
-          {/* Cluster-wise Stats */}
-          <Card>
-            <CardHeader className="pb-3 sm:pb-6">
-              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                <Layers className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-                Cluster Stats
-              </CardTitle>
-              <CardDescription className="text-xs sm:text-sm">
-                Member distribution by cluster
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="px-3 sm:px-6">
-              {stats.clusterStats.length === 0 ? (
-                <p className="text-muted-foreground text-sm py-4 text-center">
-                  No data available
-                </p>
-              ) : (
-                <div className="overflow-x-auto -mx-3 sm:mx-0">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-xs sm:text-sm">Cluster</TableHead>
-                        <TableHead className="text-xs sm:text-sm hidden sm:table-cell">Panchayath</TableHead>
-                        <TableHead className="text-right text-xs sm:text-sm">Members</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {stats.clusterStats.slice(0, 5).map((stat) => (
-                        <TableRow key={stat.id}>
-                          <TableCell className="py-2 sm:py-4">
-                            <div className="font-medium text-xs sm:text-sm">{stat.name}</div>
-                            <div className="text-xs text-muted-foreground sm:hidden">{stat.panchayath_name}</div>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground text-xs sm:text-sm py-2 sm:py-4 hidden sm:table-cell">
-                            {stat.panchayath_name}
-                          </TableCell>
-                          <TableCell className="text-right text-xs sm:text-sm py-2 sm:py-4">{stat.members}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
         </div>
+
+        {/* Cluster Stats - Full width */}
+        <Card>
+          <CardHeader className="pb-3 sm:pb-6">
+            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+              <Layers className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+              Cluster Stats
+            </CardTitle>
+            <CardDescription className="text-xs sm:text-sm">
+              Member distribution by cluster
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="px-3 sm:px-6">
+            {stats.clusterStats.length === 0 ? (
+              <p className="text-muted-foreground text-sm py-4 text-center">
+                No data available
+              </p>
+            ) : (
+              <div className="overflow-x-auto -mx-3 sm:mx-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs sm:text-sm">Cluster</TableHead>
+                      <TableHead className="text-xs sm:text-sm hidden sm:table-cell">Panchayath</TableHead>
+                      <TableHead className="text-right text-xs sm:text-sm">Members</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {stats.clusterStats.slice(0, 5).map((stat) => (
+                      <TableRow key={stat.id}>
+                        <TableCell className="py-2 sm:py-4">
+                          <div className="font-medium text-xs sm:text-sm">{stat.name}</div>
+                          <div className="text-xs text-muted-foreground sm:hidden">{stat.panchayath_name}</div>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground text-xs sm:text-sm py-2 sm:py-4 hidden sm:table-cell">
+                          {stat.panchayath_name}
+                        </TableCell>
+                        <TableCell className="text-right text-xs sm:text-sm py-2 sm:py-4">{stat.members}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {stats.error && (
           <div className="mt-4 p-4 bg-destructive/10 text-destructive rounded-lg">
