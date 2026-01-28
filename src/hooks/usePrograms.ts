@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import { useAuth } from "./useAuth";
 
+const SUPABASE_URL = "https://qnucqwniloioxsowdqzj.supabase.co";
+
 export type Program = Tables<"programs"> & {
   division?: { name: string; color: string | null };
   panchayath?: { name: string } | null;
@@ -140,6 +142,7 @@ export function useProgramRegistrations(programId: string | undefined) {
   const [registrations, setRegistrations] = useState<ProgramRegistration[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { adminToken, isSuperAdmin, session } = useAuth();
 
   const fetchRegistrations = useCallback(async () => {
     if (!programId) {
@@ -151,22 +154,42 @@ export function useProgramRegistrations(programId: string | undefined) {
     setError(null);
 
     try {
-      const { data, error: fetchError } = await supabase
-        .from("program_registrations")
-        .select("*")
-        .eq("program_id", programId)
-        .order("created_at", { ascending: false });
+      // If admin is authenticated via custom token, use edge function
+      if (adminToken) {
+        const functionUrl = `${SUPABASE_URL}/functions/v1/admin-registrations?program_id=${programId}`;
+        const fetchResponse = await fetch(functionUrl, {
+          method: "GET",
+          headers: {
+            "x-admin-token": adminToken,
+            "Content-Type": "application/json",
+          },
+        });
 
-      if (fetchError) throw fetchError;
+        if (!fetchResponse.ok) {
+          const errorData = await fetchResponse.json();
+          throw new Error(errorData.error || "Failed to fetch registrations");
+        }
 
-      setRegistrations(data || []);
+        const data = await fetchResponse.json();
+        setRegistrations(data.registrations || []);
+      } else {
+        // Super admin or authenticated user - use direct Supabase query
+        const { data, error: fetchError } = await supabase
+          .from("program_registrations")
+          .select("*")
+          .eq("program_id", programId)
+          .order("created_at", { ascending: false });
+
+        if (fetchError) throw fetchError;
+        setRegistrations(data || []);
+      }
     } catch (err: any) {
       setError(err.message || "Failed to fetch registrations");
       console.error("Error fetching registrations:", err);
     } finally {
       setIsLoading(false);
     }
-  }, [programId]);
+  }, [programId, adminToken, isSuperAdmin, session]);
 
   useEffect(() => {
     fetchRegistrations();
