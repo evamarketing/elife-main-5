@@ -2,6 +2,7 @@ import { Layout } from "@/components/layout/Layout";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdminStats } from "@/hooks/useAdminStats";
 import { StatsCard } from "@/components/dashboard/StatsCard";
+import { RegistrationsDialog } from "@/components/dashboard/RegistrationsDialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,7 +26,8 @@ import {
   Shield,
   Loader2,
   Building2,
-  Clock
+  Clock,
+  ExternalLink
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,10 +39,17 @@ interface DivisionInfo {
   description: string | null;
 }
 
+interface PanchayathFilter {
+  id: string;
+  name: string;
+}
+
 export default function AdminDashboard() {
   const { isAdmin, isSuperAdmin, signOut, adminData, adminToken, user } = useAuth();
   const stats = useAdminStats();
   const [divisionInfo, setDivisionInfo] = useState<DivisionInfo | null>(null);
+  const [registrationsDialogOpen, setRegistrationsDialogOpen] = useState(false);
+  const [panchayathFilter, setPanchayathFilter] = useState<PanchayathFilter | null>(null);
 
   useEffect(() => {
     const fetchDivisionInfo = async () => {
@@ -133,6 +142,10 @@ export default function AdminDashboard() {
             title="Registrations"
             value={stats.totalRegistrations}
             icon={ClipboardList}
+            onClick={() => {
+              setPanchayathFilter(null);
+              setRegistrationsDialogOpen(true);
+            }}
           />
           <StatsCard
             title="Active Programs"
@@ -247,8 +260,20 @@ export default function AdminDashboard() {
                     </TableHeader>
                     <TableBody>
                       {stats.panchayathStats.slice(0, 5).map((stat) => (
-                        <TableRow key={stat.id}>
-                          <TableCell className="font-medium text-xs sm:text-sm py-2 sm:py-4">{stat.name}</TableCell>
+                        <TableRow 
+                          key={stat.id} 
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => {
+                            setPanchayathFilter({ id: stat.id, name: stat.name });
+                            setRegistrationsDialogOpen(true);
+                          }}
+                        >
+                          <TableCell className="font-medium text-xs sm:text-sm py-2 sm:py-4">
+                            <div className="flex items-center gap-1">
+                              {stat.name}
+                              <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100" />
+                            </div>
+                          </TableCell>
                           <TableCell className="text-right text-xs sm:text-sm py-2 sm:py-4">{stat.programs}</TableCell>
                           <TableCell className="text-right text-xs sm:text-sm py-2 sm:py-4">{stat.registrations}</TableCell>
                         </TableRow>
@@ -312,6 +337,14 @@ export default function AdminDashboard() {
             Error loading stats: {stats.error}
           </div>
         )}
+
+        {/* Registrations Dialog */}
+        <RegistrationsDialog
+          open={registrationsDialogOpen}
+          onOpenChange={setRegistrationsDialogOpen}
+          filterPanchayathId={panchayathFilter?.id}
+          filterPanchayathName={panchayathFilter?.name}
+        />
       </div>
     </Layout>
   );
