@@ -35,8 +35,8 @@ interface FormBuilderProps {
 const QUESTION_TYPES = [
   { value: "text", label: "Short Text" },
   { value: "phone", label: "Phone" },
-  { value: "dropdown", label: "Dropdown" },
-  { value: "multiple_choice", label: "Single Choice (Radio)" },
+  { value: "select", label: "Dropdown" },
+  { value: "radio", label: "Single Choice (Radio)" },
   { value: "checkbox", label: "Multiple Choice (Checkbox)" },
   { value: "multi_text", label: "Multiple Answers (Add More)" },
 ];
@@ -95,7 +95,7 @@ export function FormBuilder({ programId, questions, onQuestionsChange }: FormBui
         question_type: questionType,
         is_required: isRequired,
         options:
-          ["dropdown", "multiple_choice", "checkbox"].includes(questionType) && options.trim()
+          ["select", "radio", "checkbox"].includes(questionType) && options.trim()
             ? options
                 .split("\n")
                 .map((o) => o.trim())
@@ -199,7 +199,7 @@ export function FormBuilder({ programId, questions, onQuestionsChange }: FormBui
     }
   };
 
-  const needsOptions = ["dropdown", "multiple_choice", "checkbox"].includes(questionType);
+  const needsOptions = ["select", "radio", "checkbox"].includes(questionType);
 
   return (
     <>
