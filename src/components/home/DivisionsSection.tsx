@@ -91,7 +91,7 @@ export function DivisionsSection() {
           {divisions.map((division) => (
             <Link 
               key={division.id}
-              to={`/divisions/${division.id}`}
+              to={`/division/${division.id}`}
               className="block"
             >
               <Card 
