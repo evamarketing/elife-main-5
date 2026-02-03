@@ -422,19 +422,40 @@ export type Database = {
           answers: Json
           created_at: string
           id: string
+          max_score: number | null
+          percentage: number | null
           program_id: string
+          total_score: number | null
+          verification_scores: Json | null
+          verification_status: string
+          verified_at: string | null
+          verified_by: string | null
         }
         Insert: {
           answers?: Json
           created_at?: string
           id?: string
+          max_score?: number | null
+          percentage?: number | null
           program_id: string
+          total_score?: number | null
+          verification_scores?: Json | null
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Update: {
           answers?: Json
           created_at?: string
           id?: string
+          max_score?: number | null
+          percentage?: number | null
           program_id?: string
+          total_score?: number | null
+          verification_scores?: Json | null
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Relationships: [
           {
@@ -460,6 +481,7 @@ export type Database = {
           panchayath_id: string | null
           start_date: string | null
           updated_at: string
+          verification_enabled: boolean
         }
         Insert: {
           all_panchayaths?: boolean
@@ -474,6 +496,7 @@ export type Database = {
           panchayath_id?: string | null
           start_date?: string | null
           updated_at?: string
+          verification_enabled?: boolean
         }
         Update: {
           all_panchayaths?: boolean
@@ -488,6 +511,7 @@ export type Database = {
           panchayath_id?: string | null
           start_date?: string | null
           updated_at?: string
+          verification_enabled?: boolean
         }
         Relationships: [
           {

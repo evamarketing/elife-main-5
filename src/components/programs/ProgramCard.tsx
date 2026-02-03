@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Calendar, MapPin, Users, Settings, Eye, Megaphone, FileText, Video } from "lucide-react";
+import { Calendar, MapPin, Users, Settings, Eye, Megaphone, FileText, Video, Star } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -72,7 +72,7 @@ export function ProgramCard({ program, isAdmin = false }: ProgramCardProps) {
         </div>
 
         {/* Module indicators */}
-        <div className="flex gap-2 mt-4">
+        <div className="flex flex-wrap gap-2 mt-4">
           {hasAnnouncements && (
             <Badge variant="outline" className="gap-1">
               <Megaphone className="h-3 w-3" />
@@ -89,6 +89,12 @@ export function ProgramCard({ program, isAdmin = false }: ProgramCardProps) {
             <Badge variant="outline" className="gap-1">
               <Video className="h-3 w-3" />
               Ad
+            </Badge>
+          )}
+          {(program as any).verification_enabled && (
+            <Badge variant="outline" className="gap-1 border-amber-500 text-amber-600 dark:text-amber-400">
+              <Star className="h-3 w-3 fill-current" />
+              Verification
             </Badge>
           )}
         </div>

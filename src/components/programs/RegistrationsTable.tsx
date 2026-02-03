@@ -17,8 +17,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Download, Users, Eye, Loader2 } from "lucide-react";
+import { Download, Users, Eye, Loader2, Star, CheckCircle2, Clock } from "lucide-react";
 import { ProgramFormQuestion, ProgramRegistration } from "@/hooks/usePrograms";
+import { RegistrationVerification } from "./RegistrationVerification";
 import { exportRegistrationsToXlsx } from "@/lib/exportXlsx";
 import { format } from "date-fns";
 
@@ -27,6 +28,8 @@ interface RegistrationsTableProps {
   questions: ProgramFormQuestion[];
   registrations: ProgramRegistration[];
   isLoading: boolean;
+  verificationEnabled?: boolean;
+  onRefresh?: () => void;
 }
 
 export function RegistrationsTable({
@@ -34,8 +37,13 @@ export function RegistrationsTable({
   questions,
   registrations,
   isLoading,
+  verificationEnabled = false,
+  onRefresh,
 }: RegistrationsTableProps) {
   const [selectedRegistration, setSelectedRegistration] = useState<ProgramRegistration | null>(
+    null
+  );
+  const [verifyingRegistration, setVerifyingRegistration] = useState<ProgramRegistration | null>(
     null
   );
   const [isExporting, setIsExporting] = useState(false);
@@ -69,6 +77,31 @@ export function RegistrationsTable({
     return String(value);
   };
 
+  const getVerificationStatus = (registration: ProgramRegistration) => {
+    const status = (registration as any).verification_status;
+    const percentage = (registration as any).percentage;
+    
+    if (status === "verified") {
+      return {
+        label: `${percentage?.toFixed(1) || 0}%`,
+        variant: "default" as const,
+        icon: CheckCircle2,
+        color: percentage >= 70 ? "bg-emerald-600" : percentage >= 40 ? "bg-amber-600" : "bg-destructive",
+      };
+    }
+    return {
+      label: "Pending",
+      variant: "secondary" as const,
+      icon: Clock,
+      color: "",
+    };
+  };
+
+  const handleVerificationComplete = () => {
+    setVerifyingRegistration(null);
+    onRefresh?.();
+  };
+
   if (isLoading) {
     return (
       <Card>
@@ -83,16 +116,32 @@ export function RegistrationsTable({
     <>
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                 <Users className="h-5 w-5" />
                 Registrations
                 <Badge variant="secondary">{registrations.length}</Badge>
+                {verificationEnabled && (
+                  <Badge variant="outline" className="hidden sm:inline-flex">
+                    <Star className="h-3 w-3 mr-1" />
+                    Verification On
+                  </Badge>
+                )}
               </CardTitle>
-              <CardDescription>View and export program registrations</CardDescription>
+              <CardDescription className="text-xs sm:text-sm">
+                {verificationEnabled 
+                  ? "View, verify, and export program registrations"
+                  : "View and export program registrations"
+                }
+              </CardDescription>
             </div>
-            <Button onClick={handleExport} disabled={registrations.length === 0 || isExporting}>
+            <Button 
+              onClick={handleExport} 
+              disabled={registrations.length === 0 || isExporting}
+              size="sm"
+              className="w-full sm:w-auto"
+            >
               {isExporting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -120,48 +169,73 @@ export function RegistrationsTable({
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12">#</TableHead>
-                    <TableHead>Date</TableHead>
+                    <TableHead className="hidden sm:table-cell">Date</TableHead>
                     <TableHead>Name</TableHead>
-                    <TableHead>Mobile</TableHead>
-                    <TableHead>Panchayath</TableHead>
-                    <TableHead>Ward</TableHead>
-                    {sortedQuestions.length > 0 && (
-                      <TableHead>+{sortedQuestions.length} more</TableHead>
+                    <TableHead className="hidden md:table-cell">Mobile</TableHead>
+                    <TableHead className="hidden lg:table-cell">Panchayath</TableHead>
+                    {verificationEnabled && (
+                      <TableHead className="text-center">Status</TableHead>
                     )}
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {registrations.map((registration, index) => (
-                    <TableRow key={registration.id}>
-                      <TableCell>{index + 1}</TableCell>
-                      <TableCell>
-                        {format(new Date(registration.created_at), "MMM d, yyyy")}
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {getFixedFieldDisplay(registration, "name")}
-                      </TableCell>
-                      <TableCell>
-                        {getFixedFieldDisplay(registration, "mobile")}
-                      </TableCell>
-                      <TableCell>
-                        {getFixedFieldDisplay(registration, "panchayath_name")}
-                      </TableCell>
-                      <TableCell>
-                        {getFixedFieldDisplay(registration, "ward")}
-                      </TableCell>
-                      {sortedQuestions.length > 0 && <TableCell>...</TableCell>}
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setSelectedRegistration(registration)}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {registrations.map((registration, index) => {
+                    const verification = verificationEnabled ? getVerificationStatus(registration) : null;
+                    const StatusIcon = verification?.icon;
+
+                    return (
+                      <TableRow key={registration.id}>
+                        <TableCell>{index + 1}</TableCell>
+                        <TableCell className="hidden sm:table-cell">
+                          {format(new Date(registration.created_at), "MMM d, yyyy")}
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          {getFixedFieldDisplay(registration, "name")}
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          {getFixedFieldDisplay(registration, "mobile")}
+                        </TableCell>
+                        <TableCell className="hidden lg:table-cell">
+                          {getFixedFieldDisplay(registration, "panchayath_name")}
+                        </TableCell>
+                        {verificationEnabled && verification && StatusIcon && (
+                          <TableCell className="text-center">
+                            <Badge 
+                              variant={verification.variant}
+                              className={verification.color}
+                            >
+                              <StatusIcon className="h-3 w-3 mr-1" />
+                              {verification.label}
+                            </Badge>
+                          </TableCell>
+                        )}
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setSelectedRegistration(registration)}
+                              title="View details"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            {verificationEnabled && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setVerifyingRegistration(registration)}
+                                title={(registration as any).verification_status === "verified" ? "View verification" : "Verify registration"}
+                                className={(registration as any).verification_status === "verified" ? "text-emerald-600" : "text-amber-600"}
+                              >
+                                <Star className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
@@ -169,6 +243,7 @@ export function RegistrationsTable({
         </CardContent>
       </Card>
 
+      {/* View Details Dialog */}
       <Dialog
         open={!!selectedRegistration}
         onOpenChange={(open) => !open && setSelectedRegistration(null)}
@@ -238,10 +313,37 @@ export function RegistrationsTable({
                   ))}
                 </div>
               )}
+
+              {/* Verification Status (if enabled and verified) */}
+              {verificationEnabled && (selectedRegistration as any).verification_status === "verified" && (
+                <div className="pt-4 border-t">
+                  <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg">
+                    <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
+                      <CheckCircle2 className="h-4 w-4" />
+                      <span className="font-medium">Verified</span>
+                      <Badge variant="secondary" className="ml-auto">
+                        {(selectedRegistration as any).percentage?.toFixed(1) || 0}%
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Score: {(selectedRegistration as any).total_score || 0} / {(selectedRegistration as any).max_score || 0}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Verification Dialog */}
+      <RegistrationVerification
+        registration={verifyingRegistration}
+        questions={sortedQuestions}
+        open={!!verifyingRegistration}
+        onOpenChange={(open) => !open && setVerifyingRegistration(null)}
+        onVerificationComplete={handleVerificationComplete}
+      />
     </>
   );
 }
