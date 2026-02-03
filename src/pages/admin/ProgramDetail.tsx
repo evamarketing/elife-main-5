@@ -41,6 +41,7 @@ import {
   Check,
   Edit,
   Trash2,
+  Star,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -61,6 +62,7 @@ export default function ProgramDetail() {
   const [editStartDate, setEditStartDate] = useState("");
   const [editEndDate, setEditEndDate] = useState("");
   const [editIsActive, setEditIsActive] = useState(true);
+  const [editVerificationEnabled, setEditVerificationEnabled] = useState(false);
 
   const { toast } = useToast();
 
@@ -73,6 +75,7 @@ export default function ProgramDetail() {
       setEditStartDate(program.start_date || "");
       setEditEndDate(program.end_date || "");
       setEditIsActive(program.is_active);
+      setEditVerificationEnabled((program as any).verification_enabled || false);
       setIsEditDialogOpen(true);
     }
   };
@@ -90,6 +93,7 @@ export default function ProgramDetail() {
           start_date: editStartDate || null,
           end_date: editEndDate || null,
           is_active: editIsActive,
+          verification_enabled: editVerificationEnabled,
         })
         .eq("id", program.id);
 
@@ -234,6 +238,12 @@ export default function ProgramDetail() {
             <Badge variant={program.is_active ? "default" : "secondary"}>
               {program.is_active ? "Active" : "Inactive"}
             </Badge>
+            {(program as any).verification_enabled && (
+              <Badge variant="outline" className="border-amber-500 text-amber-600 dark:text-amber-400">
+                <Star className="h-3 w-3 mr-1 fill-current" />
+                Verification
+              </Badge>
+            )}
           </div>
 
           {program.description && (
@@ -390,6 +400,8 @@ export default function ProgramDetail() {
                 questions={program.form_questions || []}
                 registrations={registrations}
                 isLoading={registrationsLoading}
+                verificationEnabled={(program as any).verification_enabled || false}
+                onRefresh={refetchRegistrations}
               />
             </TabsContent>
           )}
@@ -452,6 +464,22 @@ export default function ProgramDetail() {
                 onCheckedChange={setEditIsActive}
               />
               <Label htmlFor="editIsActive" className="cursor-pointer">Program is active</Label>
+            </div>
+            <div className="flex items-center gap-3 py-2 p-3 bg-muted/50 rounded-lg">
+              <Switch
+                id="editVerificationEnabled"
+                checked={editVerificationEnabled}
+                onCheckedChange={setEditVerificationEnabled}
+              />
+              <div className="flex-1">
+                <Label htmlFor="editVerificationEnabled" className="cursor-pointer flex items-center gap-2">
+                  <Star className="h-4 w-4 text-amber-500" />
+                  Enable Form Verification
+                </Label>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Allow scoring registrations (0-10 per question) to evaluate applicants
+                </p>
+              </div>
             </div>
           </div>
           <DialogFooter className="flex-col-reverse gap-2 sm:flex-row sm:gap-2">
